@@ -1,8 +1,7 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,15 +12,29 @@ import Link from "next/link";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"recruiter" | "applicant">("applicant");
+  const [role, setRole] = useState("applicant");
   const router = useRouter();
-  const { signup } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signup(email, password, role);
-      router.push("/home");
+      console.log("Submitting signup form with email:", email);
+      const response = await fetch('http://localhost:5000/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, role }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Signup successful:", data);
+        router.push("/home");
+      } else {
+        const errorData = await response.json();
+        console.error("Signup failed:", errorData);
+      }
     } catch (error) {
       console.error("Signup failed:", error);
     }
@@ -56,7 +69,7 @@ export default function SignupPage() {
             </div>
             <div className="space-y-2">
               <Label>I am a:</Label>
-              <RadioGroup value={role} onValueChange={(value: "recruiter" | "applicant") => setRole(value)}>
+              <RadioGroup value={role} onValueChange={setRole}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="applicant" id="applicant" />
                   <Label htmlFor="applicant">Job Seeker</Label>
